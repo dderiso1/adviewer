@@ -81,14 +81,14 @@ export function SectionPage({ state, containerWidth }: SectionPageProps) {
         <div className="flex items-center gap-3 mb-1">
           <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}
               style={{ fontFamily: 'Georgia, serif' }}>
-            Technology
+            Labor & Unions
           </h1>
           <span className={`text-xs px-2 py-0.5 rounded ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'}`}>
             Section
           </span>
         </div>
         <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          The latest in tech, startups, AI, and digital transformation
+          Organizing campaigns, contract negotiations, and the future of work
         </p>
       </div>
 

@@ -93,7 +93,7 @@ export function NewsFeed({ state, containerWidth }: NewsFeedProps) {
           Top Stories
         </h1>
         <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          Latest news and breaking stories
+          Latest labor news and organizing updates
         </p>
       </div>
 

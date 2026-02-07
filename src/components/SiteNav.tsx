@@ -12,7 +12,7 @@ export function SiteNav({ darkMode }: { darkMode: boolean }) {
     >
       <div className="flex items-center gap-2">
         <div className="font-bold text-xl tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
-          The Daily Chronicle
+          The Labor Wire
         </div>
       </div>
       <div className="hidden md:flex items-center gap-4 text-sm">

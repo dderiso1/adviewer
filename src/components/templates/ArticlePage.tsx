@@ -60,7 +60,7 @@ export function ArticlePage({ state, containerWidth }: ArticlePageProps) {
               }}
             >
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>
-                Photo: Reuters / Pool
+                Photo: UAW Local 42 / Chattanooga
               </div>
             </div>
 
@@ -101,9 +101,9 @@ export function ArticlePage({ state, containerWidth }: ArticlePageProps) {
                     }`}
                   >
                     <span className="font-bold text-highlight mr-2">{n}.</span>
-                    {n === 1 && 'Fed Signals Rate Hold Through Q2 as Inflation Cools'}
-                    {n === 2 && 'Tech IPO Market Heats Up With Three Major Filings'}
-                    {n === 3 && 'Climate Summit Produces Unexpected Breakthrough Deal'}
+                    {n === 1 && 'Mercedes-Benz Alabama Workers File for Union Election'}
+                    {n === 2 && 'UAW Membership Hits Highest Level Since 2008'}
+                    {n === 3 && 'Southern Governors Warn Against Unionization Wave'}
                   </div>
                 ))}
               </div>
@@ -122,9 +122,9 @@ export function ArticlePage({ state, containerWidth }: ArticlePageProps) {
                     }`}
                   >
                     <span className="font-bold text-highlight mr-2">{n}.</span>
-                    {n === 4 && 'New Study Links Ultra-Processed Foods to Cognitive Decline'}
-                    {n === 5 && 'Housing Affordability Crisis Deepens in Sun Belt Cities'}
-                    {n === 6 && 'SpaceX Starship Completes Historic Orbital Flight'}
+                    {n === 4 && 'Toyota Georgetown Workers Begin Card-Signing Campaign'}
+                    {n === 5 && 'How the Stand Up Strike Reshaped UAW Strategy'}
+                    {n === 6 && 'Rivian Georgia Plant Workers Connect With Organizers'}
                   </div>
                 ))}
               </div>

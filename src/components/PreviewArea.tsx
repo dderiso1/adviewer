@@ -46,7 +46,7 @@ export const PreviewArea = forwardRef<HTMLDivElement, PreviewAreaProps>(
               <div className="w-3 h-3 rounded-full bg-green-400" />
             </div>
             <div className="flex-1 bg-white rounded px-3 py-0.5 text-[10px] text-gray-400 text-center truncate">
-              thedailychronicle.com/{template === 'article' ? '2025/01/markets-rally-tech-earnings' : template === 'feed' ? 'top-stories' : 'technology'}
+              thelaborwire.com/{template === 'article' ? '2024/12/uaw-vw-chattanooga-contract' : template === 'feed' ? 'top-stories' : 'labor-unions'}
             </div>
           </div>
 
