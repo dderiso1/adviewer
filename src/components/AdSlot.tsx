@@ -66,7 +66,7 @@ export function AdSlot({
             transformOrigin: 'top left',
             marginBottom: needsScaling ? -(displayHeight * (1 - scale)) : undefined,
             marginRight: needsScaling ? -(displayWidth * (1 - scale)) : undefined,
-            border: showOutline ? '2px dashed #e94560' : undefined,
+            border: showOutline ? '2px dashed #56C3E8' : undefined,
             position: 'relative',
             boxSizing: 'border-box',
           }}
@@ -96,7 +96,7 @@ export function AdSlot({
                 position: 'absolute',
                 top: 4,
                 right: 4,
-                background: 'rgba(233,69,96,0.85)',
+                background: 'rgba(15,43,69,0.85)',
                 color: 'white',
                 fontSize: 9,
                 padding: '1px 5px',
@@ -129,7 +129,7 @@ function Placeholder({
       style={{
         width,
         height,
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #0F2B45 0%, #1a4a6e 50%, #56C3E8 100%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
