@@ -7,16 +7,17 @@ import { PropertyPanel } from './components/PropertyPanel';
 import CTVPreview from './components/CTVPreview';
 import { useAppState } from './hooks/useAppState';
 import { exportScreenshot } from './utils/export';
-import { saveConfig, generateId } from './utils/storage';
+import { encodeStateForURL } from './utils/storage';
 import type { InteractiveAdConfig } from './types';
 
 function App() {
-  // Check for presentation mode
+  // Check for presentation mode — URL-encoded state in hash or query
   const params = new URLSearchParams(window.location.search);
-  const presentId = params.get('present');
+  const presentParam = params.get('present');
+  const hashData = window.location.hash.slice(1); // remove leading #
 
-  if (presentId) {
-    return <PresentationView configId={presentId} />;
+  if (presentParam || hashData) {
+    return <PresentationView presentParam={presentParam} hashData={hashData} />;
   }
 
   return <Editor />;
@@ -34,9 +35,9 @@ function Editor() {
   };
 
   const handleClientLink = async () => {
-    const id = generateId();
-    await saveConfig(id, actions.state);
-    const url = `${window.location.origin}${window.location.pathname}?present=${id}`;
+    // Encode state into URL hash — works cross-device, no backend needed
+    const compressed = encodeStateForURL(actions.state);
+    const url = `${window.location.origin}${window.location.pathname}#${compressed}`;
     await navigator.clipboard.writeText(url);
     alert('Client preview link copied to clipboard!');
   };

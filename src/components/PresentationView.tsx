@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { AppState } from '../types';
 import { VIEWPORT_PRESETS } from '../types';
-import { loadConfig } from '../utils/storage';
+import { loadConfig, decodeStateFromURL } from '../utils/storage';
 import { ArticlePage } from './templates/ArticlePage';
 import { NewsFeed } from './templates/NewsFeed';
 import { SectionPage } from './templates/SectionPage';
@@ -31,23 +31,42 @@ const stateDefaults: AppState = {
   selectedComponentId: null,
 };
 
-export function PresentationView({ configId }: { configId: string }) {
+interface PresentationViewProps {
+  presentParam?: string | null; // legacy IndexedDB id or ignored
+  hashData?: string;            // new: lz-string compressed state in URL hash
+}
+
+export function PresentationView({ presentParam, hashData }: PresentationViewProps) {
   const [state, setState] = useState<AppState | null>(null);
   const [error, setError] = useState(false);
   const [width, setWidth] = useState(window.innerWidth);
 
   useEffect(() => {
-    loadConfig(configId)
-      .then((loaded) => {
-        if (loaded) {
-          // Merge with defaults to fill any missing fields from old configs
-          setState({ ...stateDefaults, ...loaded });
-        } else {
-          setError(true);
-        }
-      })
-      .catch(() => setError(true));
-  }, [configId]);
+    // Try URL hash first (new portable format)
+    if (hashData) {
+      const decoded = decodeStateFromURL(hashData);
+      if (decoded) {
+        setState({ ...stateDefaults, ...decoded });
+        return;
+      }
+    }
+
+    // Fall back to legacy IndexedDB lookup
+    if (presentParam) {
+      loadConfig(presentParam)
+        .then((loaded) => {
+          if (loaded) {
+            setState({ ...stateDefaults, ...loaded });
+          } else {
+            setError(true);
+          }
+        })
+        .catch(() => setError(true));
+      return;
+    }
+
+    setError(true);
+  }, [presentParam, hashData]);
 
   // Track viewport width for responsive rendering
   useEffect(() => {
@@ -62,7 +81,7 @@ export function PresentationView({ configId }: { configId: string }) {
         <div className="text-center p-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Preview Not Found</h1>
           <p className="text-gray-500 text-sm">
-            This preview link has expired or was created on a different device.
+            This preview link may be invalid. Please request a new link.
           </p>
         </div>
       </div>

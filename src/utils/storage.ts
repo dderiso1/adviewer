@@ -1,4 +1,7 @@
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import type { AppState } from '../types';
+
+// ── IndexedDB (legacy, still used as fallback) ──────────
 
 const DB_NAME = 'ad-previewer';
 const STORE_NAME = 'configs';
@@ -44,4 +47,41 @@ export async function loadConfig(id: string): Promise<AppState | null> {
 
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+}
+
+// ── URL-encoded state (portable, works cross-device) ────
+
+/**
+ * Compress state into a URL-safe string.
+ * Strips fields that aren't needed for the client preview.
+ */
+export function encodeStateForURL(state: AppState): string {
+  // Only include what's needed for the preview
+  const preview = {
+    template: state.template,
+    darkMode: state.darkMode,
+    showOutlines: state.showOutlines,
+    showLabels: state.showLabels,
+    scaleMode: state.scaleMode,
+    creatives: state.creatives,
+    active970Variant: state.active970Variant,
+    landingPageUrl: state.landingPageUrl,
+    adMode: state.adMode,
+    interactiveAds: state.interactiveAds,
+    ctvConfig: state.ctvConfig,
+  };
+  return compressToEncodedURIComponent(JSON.stringify(preview));
+}
+
+/**
+ * Decode a compressed state string from the URL.
+ */
+export function decodeStateFromURL(encoded: string): Partial<AppState> | null {
+  try {
+    const json = decompressFromEncodedURIComponent(encoded);
+    if (!json) return null;
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
 }
