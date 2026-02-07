@@ -6,9 +6,18 @@ import type {
 import { VIEWPORT_PRESETS } from '../types';
 
 const STORAGE_KEY = 'ad-previewer-state';
+const STORAGE_VERSION_KEY = 'ad-previewer-version';
+const CURRENT_VERSION = '2'; // Bump to clear stale state
 
 function loadFromStorage(): Partial<AppState> | null {
   try {
+    // Clear stale state from older versions
+    const version = localStorage.getItem(STORAGE_VERSION_KEY);
+    if (version !== CURRENT_VERSION) {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_VERSION);
+      return null;
+    }
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
@@ -60,11 +69,13 @@ export function useAppState() {
     const timer = setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_VERSION);
       } catch {
         // If quota exceeded (large data URLs), save without creatives
         const { creatives: _c, interactiveAds: _ia, ...rest } = state;
         void _c; void _ia;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+        localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_VERSION);
       }
     }, 500);
     return () => clearTimeout(timer);

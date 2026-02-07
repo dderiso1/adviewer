@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { AdSizeKey, ScaleMode, CreativeKey, Creatives, AdMode, InteractiveAdConfig } from '../types';
 import { AD_SIZES } from '../types';
 import { InteractiveAdRenderer } from './InteractiveAdRenderer';
@@ -40,14 +41,12 @@ export function AdSlot({
   interactiveAds,
 }: AdSlotProps) {
   const adSize = AD_SIZES[size];
-  const interactiveConfig = interactiveAds?.[size];
-  const isInteractive =
-    adMode === 'video-interactive' &&
-    interactiveConfig &&
-    interactiveConfig.components.length > 0;
-
   const creativeKey = getCreativeKey(size, variant, active970Variant);
   const imageUrl = creatives[creativeKey];
+
+  // Only use interactive mode when explicitly video-interactive AND has components
+  const interactiveConfig = adMode === 'video-interactive' ? interactiveAds?.[size] : undefined;
+  const isInteractive = !!(interactiveConfig && interactiveConfig.components.length > 0);
 
   const needsScaling =
     scaleMode === 'scale-to-fit' &&
@@ -91,40 +90,14 @@ export function AdSlot({
               landingPageUrl={landingPageUrl}
             />
           ) : (
-            <>
-              {(() => {
-                const adContent = imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt={`Ad ${size}`}
-                    style={{
-                      width: displayWidth,
-                      height: displayHeight,
-                      objectFit: 'fill',
-                      display: 'block',
-                    }}
-                  />
-                ) : (
-                  <Placeholder
-                    width={displayWidth}
-                    height={displayHeight}
-                    sizeLabel={size}
-                    variant={size === '970x250' ? (variant ?? active970Variant) : undefined}
-                  />
-                );
-
-                return landingPageUrl ? (
-                  <a
-                    href={landingPageUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: 'block', textDecoration: 'none' }}
-                  >
-                    {adContent}
-                  </a>
-                ) : adContent;
-              })()}
-            </>
+            <AdImage
+              imageUrl={imageUrl}
+              size={size}
+              displayWidth={displayWidth}
+              displayHeight={displayHeight}
+              variant={size === '970x250' ? (variant ?? active970Variant) : undefined}
+              landingPageUrl={landingPageUrl}
+            />
           )}
           {showOutline && (
             <div
@@ -147,6 +120,66 @@ export function AdSlot({
       </div>
     </div>
   );
+}
+
+/** Renders the creative image with fallback to placeholder on error */
+function AdImage({
+  imageUrl,
+  size,
+  displayWidth,
+  displayHeight,
+  variant,
+  landingPageUrl,
+}: {
+  imageUrl: string | undefined;
+  size: AdSizeKey;
+  displayWidth: number;
+  displayHeight: number;
+  variant?: 'A' | 'B';
+  landingPageUrl?: string;
+}) {
+  const [imgError, setImgError] = useState(false);
+
+  // Reset error state when imageUrl changes
+  const [lastUrl, setLastUrl] = useState(imageUrl);
+  if (imageUrl !== lastUrl) {
+    setLastUrl(imageUrl);
+    setImgError(false);
+  }
+
+  const showImage = imageUrl && !imgError;
+
+  const adContent = showImage ? (
+    <img
+      src={imageUrl}
+      alt={`Ad ${size}`}
+      onError={() => setImgError(true)}
+      style={{
+        width: displayWidth,
+        height: displayHeight,
+        objectFit: 'fill',
+        display: 'block',
+      }}
+    />
+  ) : (
+    <Placeholder
+      width={displayWidth}
+      height={displayHeight}
+      sizeLabel={size}
+      variant={variant}
+    />
+  );
+
+  return landingPageUrl ? (
+    <a
+      href={landingPageUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ display: 'block', textDecoration: 'none' }}
+    >
+      {adContent}
+    </a>
+  ) : adContent;
 }
 
 function Placeholder({
