@@ -9,7 +9,7 @@ interface ArticlePageProps {
 }
 
 export function ArticlePage({ state, containerWidth }: ArticlePageProps) {
-  const { showOutlines, showLabels, scaleMode, creatives, active970Variant, darkMode } = state;
+  const { showOutlines, showLabels, scaleMode, creatives, active970Variant, darkMode, landingPageUrl } = state;
   const isDesktop = containerWidth >= 900;
   const contentWidth = isDesktop ? containerWidth - 340 : containerWidth;
 
@@ -19,6 +19,7 @@ export function ArticlePage({ state, containerWidth }: ArticlePageProps) {
     scaleMode,
     creatives,
     active970Variant,
+    landingPageUrl: landingPageUrl || undefined,
   };
 
   // Insert in-article ads after paragraph 2, 5, and 8

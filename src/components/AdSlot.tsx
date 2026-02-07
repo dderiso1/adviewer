@@ -11,6 +11,7 @@ interface AdSlotProps {
   scaleMode: ScaleMode;
   creatives: Creatives;
   containerWidth?: number;
+  landingPageUrl?: string;
 }
 
 function getCreativeKey(size: AdSizeKey, variant?: 'A' | 'B', active970Variant?: 'A' | 'B'): CreativeKey {
@@ -31,6 +32,7 @@ export function AdSlot({
   scaleMode,
   creatives,
   containerWidth,
+  landingPageUrl,
 }: AdSlotProps) {
   const adSize = AD_SIZES[size];
   const creativeKey = getCreativeKey(size, variant, active970Variant);
@@ -71,25 +73,38 @@ export function AdSlot({
             boxSizing: 'border-box',
           }}
         >
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={`Ad ${size}`}
-              style={{
-                width: displayWidth,
-                height: displayHeight,
-                objectFit: 'fill',
-                display: 'block',
-              }}
-            />
-          ) : (
-            <Placeholder
-              width={displayWidth}
-              height={displayHeight}
-              sizeLabel={size}
-              variant={size === '970x250' ? (variant ?? active970Variant) : undefined}
-            />
-          )}
+          {(() => {
+            const adContent = imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={`Ad ${size}`}
+                style={{
+                  width: displayWidth,
+                  height: displayHeight,
+                  objectFit: 'fill',
+                  display: 'block',
+                }}
+              />
+            ) : (
+              <Placeholder
+                width={displayWidth}
+                height={displayHeight}
+                sizeLabel={size}
+                variant={size === '970x250' ? (variant ?? active970Variant) : undefined}
+              />
+            );
+
+            return landingPageUrl ? (
+              <a
+                href={landingPageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'block', textDecoration: 'none' }}
+              >
+                {adContent}
+              </a>
+            ) : adContent;
+          })()}
           {showOutline && (
             <div
               style={{

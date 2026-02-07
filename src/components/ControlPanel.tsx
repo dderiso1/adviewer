@@ -148,6 +148,25 @@ export function ControlPanel({ actions, onExport, onClientLink }: ControlPanelPr
           </div>
         </Section>
 
+        {/* Landing page URL */}
+        <Section title="Landing Page">
+          <input
+            type="url"
+            placeholder="https://example.com/landing"
+            value={state.landingPageUrl}
+            onChange={(e) => actions.setLandingPageUrl(e.target.value)}
+            className="w-full px-3 py-2 rounded border border-gray-200 text-xs text-gray-700 focus:outline-none focus:ring-1"
+            style={{ focusRingColor: '#56C3E8' } as React.CSSProperties}
+            onFocus={(e) => (e.currentTarget.style.borderColor = '#56C3E8')}
+            onBlur={(e) => (e.currentTarget.style.borderColor = '#e5e7eb')}
+          />
+          {state.landingPageUrl && (
+            <p className="text-[10px] mt-1" style={{ color: '#56C3E8' }}>
+              All ads will link to this URL
+            </p>
+          )}
+        </Section>
+
         {/* Creative management */}
         <Section title="Creatives">
           <div className="flex flex-col gap-2">

@@ -31,6 +31,7 @@ const defaults: AppState = {
   darkMode: false,
   creatives: {},
   active970Variant: 'A',
+  landingPageUrl: '',
 };
 
 export function useAppState() {
@@ -96,6 +97,10 @@ export function useAppState() {
     setState(s => ({ ...s, active970Variant: variant }));
   }, []);
 
+  const setLandingPageUrl = useCallback((landingPageUrl: string) => {
+    setState(s => ({ ...s, landingPageUrl }));
+  }, []);
+
   const getShareURL = useCallback(() => {
     const { creatives: _c, ...rest } = state;
     void _c;
@@ -114,6 +119,7 @@ export function useAppState() {
     toggleDarkMode,
     setCreative,
     setActive970Variant,
+    setLandingPageUrl,
     getShareURL,
   };
 }

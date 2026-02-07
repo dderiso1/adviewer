@@ -50,7 +50,7 @@ function SectionCard({
 }
 
 export function SectionPage({ state, containerWidth }: SectionPageProps) {
-  const { showOutlines, showLabels, scaleMode, creatives, active970Variant, darkMode } = state;
+  const { showOutlines, showLabels, scaleMode, creatives, active970Variant, darkMode, landingPageUrl } = state;
   const isDesktop = containerWidth >= 700;
 
   const adProps = {
@@ -59,6 +59,7 @@ export function SectionPage({ state, containerWidth }: SectionPageProps) {
     scaleMode,
     creatives,
     active970Variant,
+    landingPageUrl: landingPageUrl || undefined,
   };
 
   return (

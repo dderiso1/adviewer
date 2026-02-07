@@ -88,4 +88,5 @@ export interface AppState {
   darkMode: boolean;
   creatives: Creatives;
   active970Variant: 'A' | 'B';
+  landingPageUrl: string;
 }
