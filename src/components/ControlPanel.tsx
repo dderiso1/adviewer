@@ -3,6 +3,8 @@ import type { AppActions } from '../hooks/useAppState';
 import { VIEWPORT_PRESETS, ZOOM_LEVELS, CREATIVE_KEYS, AD_SIZES } from '../types';
 import type { CreativeKey } from '../types';
 
+const BASE = import.meta.env.BASE_URL;
+
 interface ControlPanelProps {
   actions: AppActions;
   onExport: () => void;
@@ -155,13 +157,13 @@ export function ControlPanel({ actions, onExport, onClientLink }: ControlPanelPr
         <Section title="Quick Start">
           <button
             onClick={() => {
-              actions.setCreative('160x200', '/sample-ads/mercedes_160x200.png');
-              actions.setCreative('300x250', '/sample-ads/mercedes_300x250.png');
-              actions.setCreative('300x600', '/sample-ads/mercedes_300x600.png');
-              actions.setCreative('320x50', '/sample-ads/mercedes_320x50.png');
-              actions.setCreative('728x90', '/sample-ads/mercedes_728x90.png');
-              actions.setCreative('970x250_A', '/sample-ads/mercedes_970x250 A.png');
-              actions.setCreative('970x250_B', '/sample-ads/mercedes_970x250 B.png');
+              actions.setCreative('160x200', `${BASE}sample-ads/mercedes_160x200.png`);
+              actions.setCreative('300x250', `${BASE}sample-ads/mercedes_300x250.png`);
+              actions.setCreative('300x600', `${BASE}sample-ads/mercedes_300x600.png`);
+              actions.setCreative('320x50', `${BASE}sample-ads/mercedes_320x50.png`);
+              actions.setCreative('728x90', `${BASE}sample-ads/mercedes_728x90.png`);
+              actions.setCreative('970x250_A', `${BASE}sample-ads/mercedes_970x250 A.png`);
+              actions.setCreative('970x250_B', `${BASE}sample-ads/mercedes_970x250 B.png`);
             }}
             className="w-full px-3 py-2 rounded text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
           >
