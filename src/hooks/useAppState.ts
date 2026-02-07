@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import type { AppState, TemplateType, ViewportPreset, ScaleMode, CreativeKey } from '../types';
+import type {
+  AppState, TemplateType, ViewportPreset, ScaleMode, CreativeKey,
+  AdMode, AdSizeKey, InteractiveAdConfig, CTVConfig, AdComponent,
+} from '../types';
 import { VIEWPORT_PRESETS } from '../types';
 
 const STORAGE_KEY = 'ad-previewer-state';
@@ -23,7 +26,7 @@ function loadFromURL(): Partial<AppState> | null {
 
 const defaults: AppState = {
   template: 'article',
-  viewport: VIEWPORT_PRESETS[2], // Desktop
+  viewport: VIEWPORT_PRESETS[2],
   zoom: 100,
   showOutlines: true,
   showLabels: true,
@@ -32,28 +35,37 @@ const defaults: AppState = {
   creatives: {},
   active970Variant: 'A',
   landingPageUrl: '',
+  // Video & Interactive
+  adMode: 'static',
+  builderView: 'builder',
+  activeBuilderSize: '300x250',
+  interactiveAds: {},
+  ctvConfig: {
+    ctaText: 'Learn More',
+    ctaUrl: '',
+    brandName: 'VoteShift',
+  },
+  selectedComponentId: null,
 };
 
 export function useAppState() {
   const [state, setState] = useState<AppState>(() => {
     const fromURL = loadFromURL();
     const fromStorage = loadFromStorage();
-    // URL overrides storage overrides defaults (but don't load creatives from URL)
-    const merged = { ...defaults, ...fromStorage, ...fromURL };
-    // Restore creatives only from storage
-    if (fromStorage?.creatives) {
-      merged.creatives = fromStorage.creatives;
-    }
-    return merged;
+    return { ...defaults, ...fromStorage, ...fromURL };
   });
 
   // Persist to localStorage (debounced)
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Don't persist creatives (data URLs are large)
-      const { creatives: _c, ...rest } = state;
-      void _c;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        // If quota exceeded (large data URLs), save without creatives
+        const { creatives: _c, interactiveAds: _ia, ...rest } = state;
+        void _c; void _ia;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+      }
     }, 500);
     return () => clearTimeout(timer);
   }, [state]);
@@ -101,9 +113,55 @@ export function useAppState() {
     setState(s => ({ ...s, landingPageUrl }));
   }, []);
 
+  // ── Video & Interactive actions ────────────────────────
+
+  const setAdMode = useCallback((adMode: AdMode) => {
+    setState(s => ({ ...s, adMode }));
+  }, []);
+
+  const setBuilderView = useCallback((builderView: 'builder' | 'in-context' | 'ctv') => {
+    setState(s => ({ ...s, builderView }));
+  }, []);
+
+  const setActiveBuilderSize = useCallback((activeBuilderSize: AdSizeKey) => {
+    setState(s => ({ ...s, activeBuilderSize }));
+  }, []);
+
+  const setInteractiveAd = useCallback((size: AdSizeKey, config: InteractiveAdConfig) => {
+    setState(s => ({
+      ...s,
+      interactiveAds: { ...s.interactiveAds, [size]: config },
+    }));
+  }, []);
+
+  const setCTVConfig = useCallback((ctvConfig: CTVConfig) => {
+    setState(s => ({ ...s, ctvConfig }));
+  }, []);
+
+  const setSelectedComponentId = useCallback((selectedComponentId: string | null) => {
+    setState(s => ({ ...s, selectedComponentId }));
+  }, []);
+
+  const updateComponent = useCallback((size: AdSizeKey, updated: AdComponent) => {
+    setState(s => {
+      const ad = s.interactiveAds[size];
+      if (!ad) return s;
+      return {
+        ...s,
+        interactiveAds: {
+          ...s.interactiveAds,
+          [size]: {
+            ...ad,
+            components: ad.components.map(c => c.id === updated.id ? updated : c),
+          },
+        },
+      };
+    });
+  }, []);
+
   const getShareURL = useCallback(() => {
-    const { creatives: _c, ...rest } = state;
-    void _c;
+    const { creatives: _c, interactiveAds: _ia, ctvConfig: _ctv, ...rest } = state;
+    void _c; void _ia; void _ctv;
     const encoded = btoa(JSON.stringify(rest));
     return `${window.location.origin}${window.location.pathname}?state=${encoded}`;
   }, [state]);
@@ -120,6 +178,13 @@ export function useAppState() {
     setCreative,
     setActive970Variant,
     setLandingPageUrl,
+    setAdMode,
+    setBuilderView,
+    setActiveBuilderSize,
+    setInteractiveAd,
+    setCTVConfig,
+    setSelectedComponentId,
+    updateComponent,
     getShareURL,
   };
 }

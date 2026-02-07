@@ -1,5 +1,6 @@
-import type { AdSizeKey, ScaleMode, CreativeKey, Creatives } from '../types';
+import type { AdSizeKey, ScaleMode, CreativeKey, Creatives, AdMode, InteractiveAdConfig } from '../types';
 import { AD_SIZES } from '../types';
+import { InteractiveAdRenderer } from './InteractiveAdRenderer';
 
 interface AdSlotProps {
   size: AdSizeKey;
@@ -12,6 +13,8 @@ interface AdSlotProps {
   creatives: Creatives;
   containerWidth?: number;
   landingPageUrl?: string;
+  adMode?: AdMode;
+  interactiveAds?: Partial<Record<AdSizeKey, InteractiveAdConfig>>;
 }
 
 function getCreativeKey(size: AdSizeKey, variant?: 'A' | 'B', active970Variant?: 'A' | 'B'): CreativeKey {
@@ -33,8 +36,16 @@ export function AdSlot({
   creatives,
   containerWidth,
   landingPageUrl,
+  adMode,
+  interactiveAds,
 }: AdSlotProps) {
   const adSize = AD_SIZES[size];
+  const interactiveConfig = interactiveAds?.[size];
+  const isInteractive =
+    adMode === 'video-interactive' &&
+    interactiveConfig &&
+    interactiveConfig.components.length > 0;
+
   const creativeKey = getCreativeKey(size, variant, active970Variant);
   const imageUrl = creatives[creativeKey];
 
@@ -73,38 +84,48 @@ export function AdSlot({
             boxSizing: 'border-box',
           }}
         >
-          {(() => {
-            const adContent = imageUrl ? (
-              <img
-                src={imageUrl}
-                alt={`Ad ${size}`}
-                style={{
-                  width: displayWidth,
-                  height: displayHeight,
-                  objectFit: 'fill',
-                  display: 'block',
-                }}
-              />
-            ) : (
-              <Placeholder
-                width={displayWidth}
-                height={displayHeight}
-                sizeLabel={size}
-                variant={size === '970x250' ? (variant ?? active970Variant) : undefined}
-              />
-            );
+          {isInteractive ? (
+            <InteractiveAdRenderer
+              config={interactiveConfig}
+              size={size}
+              landingPageUrl={landingPageUrl}
+            />
+          ) : (
+            <>
+              {(() => {
+                const adContent = imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={`Ad ${size}`}
+                    style={{
+                      width: displayWidth,
+                      height: displayHeight,
+                      objectFit: 'fill',
+                      display: 'block',
+                    }}
+                  />
+                ) : (
+                  <Placeholder
+                    width={displayWidth}
+                    height={displayHeight}
+                    sizeLabel={size}
+                    variant={size === '970x250' ? (variant ?? active970Variant) : undefined}
+                  />
+                );
 
-            return landingPageUrl ? (
-              <a
-                href={landingPageUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'block', textDecoration: 'none' }}
-              >
-                {adContent}
-              </a>
-            ) : adContent;
-          })()}
+                return landingPageUrl ? (
+                  <a
+                    href={landingPageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'block', textDecoration: 'none' }}
+                  >
+                    {adContent}
+                  </a>
+                ) : adContent;
+              })()}
+            </>
+          )}
           {showOutline && (
             <div
               style={{
@@ -119,7 +140,7 @@ export function AdSlot({
                 fontFamily: 'monospace',
               }}
             >
-              {size}
+              {size}{isInteractive ? ' (interactive)' : ''}
             </div>
           )}
         </div>

@@ -55,7 +55,7 @@ function FeedCard({
 }
 
 export function NewsFeed({ state, containerWidth }: NewsFeedProps) {
-  const { showOutlines, showLabels, scaleMode, creatives, active970Variant, darkMode, landingPageUrl } = state;
+  const { showOutlines, showLabels, scaleMode, creatives, active970Variant, darkMode, landingPageUrl, adMode, interactiveAds } = state;
 
   const adProps = {
     showOutline: showOutlines,
@@ -64,6 +64,8 @@ export function NewsFeed({ state, containerWidth }: NewsFeedProps) {
     creatives,
     active970Variant,
     landingPageUrl: landingPageUrl || undefined,
+    adMode,
+    interactiveAds,
   };
 
   // Insert in-feed ads after card 3 and card 7

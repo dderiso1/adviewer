@@ -2,9 +2,13 @@ import { useRef } from 'react';
 import { ControlPanel } from './components/ControlPanel';
 import { PreviewArea } from './components/PreviewArea';
 import { PresentationView } from './components/PresentationView';
+import { AdBuilder } from './components/AdBuilder';
+import { PropertyPanel } from './components/PropertyPanel';
+import CTVPreview from './components/CTVPreview';
 import { useAppState } from './hooks/useAppState';
 import { exportScreenshot } from './utils/export';
 import { saveConfig, generateId } from './utils/storage';
+import type { InteractiveAdConfig } from './types';
 
 function App() {
   // Check for presentation mode
@@ -21,6 +25,7 @@ function App() {
 function Editor() {
   const actions = useAppState();
   const previewRef = useRef<HTMLDivElement>(null);
+  const { state } = actions;
 
   const handleExport = async () => {
     if (previewRef.current) {
@@ -36,6 +41,22 @@ function Editor() {
     alert('Client preview link copied to clipboard!');
   };
 
+  const isBuilderMode =
+    state.adMode === 'video-interactive' && state.builderView === 'builder';
+  const isCTVMode =
+    state.adMode === 'video-interactive' && state.builderView === 'ctv';
+
+  // Get or create the interactive ad config for the active builder size
+  const activeConfig: InteractiveAdConfig = state.interactiveAds[state.activeBuilderSize] ?? {
+    size: state.activeBuilderSize,
+    components: [],
+    backgroundColor: '#0F2B45',
+  };
+
+  const selectedComponent = activeConfig.components.find(
+    (c) => c.id === state.selectedComponentId
+  ) ?? null;
+
   return (
     <div className="flex h-screen overflow-hidden">
       <ControlPanel
@@ -43,7 +64,44 @@ function Editor() {
         onExport={handleExport}
         onClientLink={handleClientLink}
       />
-      <PreviewArea ref={previewRef} state={actions.state} />
+
+      {isBuilderMode ? (
+        <>
+          <div className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center p-6">
+            <AdBuilder
+              config={activeConfig}
+              size={state.activeBuilderSize}
+              selectedId={state.selectedComponentId}
+              onSelectComponent={actions.setSelectedComponentId}
+              onUpdateConfig={(config) =>
+                actions.setInteractiveAd(state.activeBuilderSize, config)
+              }
+            />
+          </div>
+          <div className="w-64 shrink-0 bg-white border-l border-gray-200 overflow-y-auto h-screen">
+            <div className="p-3 border-b border-gray-200">
+              <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#0F2B45' }}>
+                Properties
+              </div>
+            </div>
+            <PropertyPanel
+              component={selectedComponent}
+              onUpdate={(updated) =>
+                actions.updateComponent(state.activeBuilderSize, updated)
+              }
+            />
+          </div>
+        </>
+      ) : isCTVMode ? (
+        <div className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center p-6">
+          <CTVPreview
+            config={state.ctvConfig}
+            onUpdateConfig={actions.setCTVConfig}
+          />
+        </div>
+      ) : (
+        <PreviewArea ref={previewRef} state={state} />
+      )}
     </div>
   );
 }

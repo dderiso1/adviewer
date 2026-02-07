@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import type { AppActions } from '../hooks/useAppState';
-import { VIEWPORT_PRESETS, ZOOM_LEVELS, CREATIVE_KEYS, AD_SIZES } from '../types';
+import { VIEWPORT_PRESETS, ZOOM_LEVELS, CREATIVE_KEYS, AD_SIZES, INTERACTIVE_SIZES } from '../types';
 import type { CreativeKey } from '../types';
 
 const BASE = import.meta.env.BASE_URL;
@@ -13,6 +13,7 @@ interface ControlPanelProps {
 
 export function ControlPanel({ actions, onExport, onClientLink }: ControlPanelProps) {
   const { state } = actions;
+  const isStatic = state.adMode === 'static';
 
   return (
     <div className="w-72 shrink-0 bg-white border-r border-gray-200 overflow-y-auto h-screen flex flex-col">
@@ -28,190 +29,395 @@ export function ControlPanel({ actions, onExport, onClientLink }: ControlPanelPr
         <p className="text-xs mt-1.5" style={{ color: '#56C3E8' }}>Ad Placement Previewer</p>
       </div>
 
+      {/* Mode switcher */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#0F2B45' }}>Ad Mode</div>
+        <div className="flex gap-1.5">
+          {([
+            { value: 'static', label: 'Static' },
+            { value: 'video-interactive', label: 'Video & Interactive' },
+          ] as const).map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => actions.setAdMode(value)}
+              className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                state.adMode === value
+                  ? 'text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              style={state.adMode === value ? { background: '#0F2B45' } : undefined}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-5">
-        {/* Template selector */}
-        <Section title="Template">
-          <div className="flex flex-col gap-1.5">
-            {([
-              { value: 'article', label: 'Article Page' },
-              { value: 'feed', label: 'News Feed' },
-              { value: 'section', label: 'Section Page' },
-            ] as const).map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => actions.setTemplate(value)}
-                className={`text-left px-3 py-2 rounded text-sm font-medium transition-colors ${
-                  state.template === value
-                    ? 'text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                style={state.template === value ? { background: '#0F2B45' } : undefined}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </Section>
+        {isStatic ? (
+          /* ── Static mode controls ────────────────────────── */
+          <>
+            {/* Template selector */}
+            <Section title="Template">
+              <div className="flex flex-col gap-1.5">
+                {([
+                  { value: 'article', label: 'Article Page' },
+                  { value: 'feed', label: 'News Feed' },
+                  { value: 'section', label: 'Section Page' },
+                ] as const).map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => actions.setTemplate(value)}
+                    className={`text-left px-3 py-2 rounded text-sm font-medium transition-colors ${
+                      state.template === value
+                        ? 'text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    style={state.template === value ? { background: '#0F2B45' } : undefined}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Section>
 
-        {/* Viewport presets */}
-        <Section title="Viewport">
-          <div className="flex gap-1.5">
-            {VIEWPORT_PRESETS.map((preset) => (
-              <button
-                key={preset.name}
-                onClick={() => actions.setViewport(preset)}
-                className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
-                  state.viewport.name === preset.name
-                    ? 'text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                style={state.viewport.name === preset.name ? { background: '#0F2B45' } : undefined}
-              >
-                {preset.name}
-                <div className="text-[10px]" style={{ color: state.viewport.name === preset.name ? '#56C3E8' : '#9ca3af' }}>
-                  {preset.width}x{preset.height}
-                </div>
-              </button>
-            ))}
-          </div>
-        </Section>
+            {/* Viewport presets */}
+            <Section title="Viewport">
+              <div className="flex gap-1.5">
+                {VIEWPORT_PRESETS.map((preset) => (
+                  <button
+                    key={preset.name}
+                    onClick={() => actions.setViewport(preset)}
+                    className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                      state.viewport.name === preset.name
+                        ? 'text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    style={state.viewport.name === preset.name ? { background: '#0F2B45' } : undefined}
+                  >
+                    {preset.name}
+                    <div className="text-[10px]" style={{ color: state.viewport.name === preset.name ? '#56C3E8' : '#9ca3af' }}>
+                      {preset.width}x{preset.height}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </Section>
 
-        {/* Zoom */}
-        <Section title="Zoom">
-          <div className="flex gap-1.5">
-            {ZOOM_LEVELS.map((z) => (
-              <button
-                key={z}
-                onClick={() => actions.setZoom(z)}
-                className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
-                  state.zoom === z
-                    ? 'text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                style={state.zoom === z ? { background: '#0F2B45' } : undefined}
-              >
-                {z}%
-              </button>
-            ))}
-          </div>
-        </Section>
+            {/* Zoom */}
+            <Section title="Zoom">
+              <div className="flex gap-1.5">
+                {ZOOM_LEVELS.map((z) => (
+                  <button
+                    key={z}
+                    onClick={() => actions.setZoom(z)}
+                    className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                      state.zoom === z
+                        ? 'text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    style={state.zoom === z ? { background: '#0F2B45' } : undefined}
+                  >
+                    {z}%
+                  </button>
+                ))}
+              </div>
+            </Section>
 
-        {/* Toggles */}
-        <Section title="Display">
-          <div className="flex flex-col gap-2">
-            <Toggle label="Slot outlines" checked={state.showOutlines} onChange={actions.toggleOutlines} />
-            <Toggle label="Ad labels" checked={state.showLabels} onChange={actions.toggleLabels} />
-            <Toggle label="Dark mode" checked={state.darkMode} onChange={actions.toggleDarkMode} />
-          </div>
-        </Section>
+            {/* Toggles */}
+            <Section title="Display">
+              <div className="flex flex-col gap-2">
+                <Toggle label="Slot outlines" checked={state.showOutlines} onChange={actions.toggleOutlines} />
+                <Toggle label="Ad labels" checked={state.showLabels} onChange={actions.toggleLabels} />
+                <Toggle label="Dark mode" checked={state.darkMode} onChange={actions.toggleDarkMode} />
+              </div>
+            </Section>
 
-        {/* Scale mode */}
-        <Section title="Overflow Behavior">
-          <div className="flex gap-1.5">
-            {([
-              { value: 'scale-to-fit', label: 'Scale to Fit' },
-              { value: 'overflow', label: 'Overflow' },
-            ] as const).map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => actions.setScaleMode(value)}
-                className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
-                  state.scaleMode === value
-                    ? 'text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                style={state.scaleMode === value ? { background: '#0F2B45' } : undefined}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </Section>
+            {/* Scale mode */}
+            <Section title="Overflow Behavior">
+              <div className="flex gap-1.5">
+                {([
+                  { value: 'scale-to-fit', label: 'Scale to Fit' },
+                  { value: 'overflow', label: 'Overflow' },
+                ] as const).map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => actions.setScaleMode(value)}
+                    className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                      state.scaleMode === value
+                        ? 'text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    style={state.scaleMode === value ? { background: '#0F2B45' } : undefined}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Section>
 
-        {/* 970x250 A/B toggle */}
-        <Section title="970x250 Variant">
-          <div className="flex gap-1.5">
-            {(['A', 'B'] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => actions.setActive970Variant(v)}
-                className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
-                  state.active970Variant === v
-                    ? 'text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                style={state.active970Variant === v ? { background: '#0F2B45' } : undefined}
-              >
-                Variant {v}
-              </button>
-            ))}
-          </div>
-        </Section>
+            {/* 970x250 A/B toggle */}
+            <Section title="970x250 Variant">
+              <div className="flex gap-1.5">
+                {(['A', 'B'] as const).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => actions.setActive970Variant(v)}
+                    className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                      state.active970Variant === v
+                        ? 'text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    style={state.active970Variant === v ? { background: '#0F2B45' } : undefined}
+                  >
+                    Variant {v}
+                  </button>
+                ))}
+              </div>
+            </Section>
 
-        {/* Landing page URL */}
-        <Section title="Landing Page">
-          <input
-            type="url"
-            placeholder="https://example.com/landing"
-            value={state.landingPageUrl}
-            onChange={(e) => actions.setLandingPageUrl(e.target.value)}
-            className="w-full px-3 py-2 rounded border border-gray-200 text-xs text-gray-700 focus:outline-none focus:ring-1"
-            style={{ focusRingColor: '#56C3E8' } as React.CSSProperties}
-            onFocus={(e) => (e.currentTarget.style.borderColor = '#56C3E8')}
-            onBlur={(e) => (e.currentTarget.style.borderColor = '#e5e7eb')}
-          />
-          {state.landingPageUrl && (
-            <p className="text-[10px] mt-1" style={{ color: '#56C3E8' }}>
-              All ads will link to this URL
-            </p>
-          )}
-        </Section>
-
-        {/* Creative management */}
-        <Section title="Creatives">
-          <div className="flex flex-col gap-2">
-            {CREATIVE_KEYS.map(({ key, label, size }) => (
-              <CreativeUploader
-                key={key}
-                creativeKey={key}
-                label={label}
-                size={size}
-                currentUrl={state.creatives[key]}
-                onUpload={(dataUrl) => actions.setCreative(key, dataUrl)}
-                onClear={() => actions.setCreative(key, undefined)}
+            {/* Landing page URL */}
+            <Section title="Landing Page">
+              <input
+                type="url"
+                placeholder="https://example.com/landing"
+                value={state.landingPageUrl}
+                onChange={(e) => actions.setLandingPageUrl(e.target.value)}
+                className="w-full px-3 py-2 rounded border border-gray-200 text-xs text-gray-700 focus:outline-none focus:ring-1"
+                style={{ focusRingColor: '#56C3E8' } as React.CSSProperties}
+                onFocus={(e) => (e.currentTarget.style.borderColor = '#56C3E8')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = '#e5e7eb')}
               />
-            ))}
-          </div>
-        </Section>
+              {state.landingPageUrl && (
+                <p className="text-[10px] mt-1" style={{ color: '#56C3E8' }}>
+                  All ads will link to this URL
+                </p>
+              )}
+            </Section>
 
-        {/* Load sample ads */}
-        <Section title="Quick Start">
-          <button
-            onClick={() => {
-              actions.setCreative('160x200', `${BASE}sample-ads/mercedes_160x200.png`);
-              actions.setCreative('300x250', `${BASE}sample-ads/mercedes_300x250.png`);
-              actions.setCreative('300x600', `${BASE}sample-ads/mercedes_300x600.png`);
-              actions.setCreative('320x50', `${BASE}sample-ads/mercedes_320x50.png`);
-              actions.setCreative('728x90', `${BASE}sample-ads/mercedes_728x90.png`);
-              actions.setCreative('970x250_A', `${BASE}sample-ads/mercedes_970x250 A.png`);
-              actions.setCreative('970x250_B', `${BASE}sample-ads/mercedes_970x250 B.png`);
-            }}
-            className="w-full px-3 py-2 rounded text-xs font-medium text-white transition-colors"
-            style={{ background: '#56C3E8' }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = '#3AABCF')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = '#56C3E8')}
-          >
-            Load Sample Ads
-          </button>
-          <button
-            onClick={() => {
-              CREATIVE_KEYS.forEach(({ key }) => actions.setCreative(key, undefined));
-            }}
-            className="w-full px-3 py-2 rounded text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors mt-1.5"
-          >
-            Clear All Creatives
-          </button>
-        </Section>
+            {/* Creative management */}
+            <Section title="Creatives">
+              <div className="flex flex-col gap-2">
+                {CREATIVE_KEYS.map(({ key, label, size }) => (
+                  <CreativeUploader
+                    key={key}
+                    creativeKey={key}
+                    label={label}
+                    size={size}
+                    currentUrl={state.creatives[key]}
+                    onUpload={(dataUrl) => actions.setCreative(key, dataUrl)}
+                    onClear={() => actions.setCreative(key, undefined)}
+                  />
+                ))}
+              </div>
+            </Section>
+
+            {/* Load sample ads */}
+            <Section title="Quick Start">
+              <button
+                onClick={() => {
+                  actions.setCreative('160x200', `${BASE}sample-ads/mercedes_160x200.png`);
+                  actions.setCreative('300x250', `${BASE}sample-ads/mercedes_300x250.png`);
+                  actions.setCreative('300x600', `${BASE}sample-ads/mercedes_300x600.png`);
+                  actions.setCreative('320x50', `${BASE}sample-ads/mercedes_320x50.png`);
+                  actions.setCreative('728x90', `${BASE}sample-ads/mercedes_728x90.png`);
+                  actions.setCreative('970x250_A', `${BASE}sample-ads/mercedes_970x250%20A.png`);
+                  actions.setCreative('970x250_B', `${BASE}sample-ads/mercedes_970x250%20B.png`);
+                }}
+                className="w-full px-3 py-2 rounded text-xs font-medium text-white transition-colors"
+                style={{ background: '#56C3E8' }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#3AABCF')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = '#56C3E8')}
+              >
+                Load Sample Ads
+              </button>
+              <button
+                onClick={() => {
+                  CREATIVE_KEYS.forEach(({ key }) => actions.setCreative(key, undefined));
+                }}
+                className="w-full px-3 py-2 rounded text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors mt-1.5"
+              >
+                Clear All Creatives
+              </button>
+            </Section>
+          </>
+        ) : (
+          /* ── Video & Interactive mode controls ───────────── */
+          <>
+            {/* View selector: Builder / In-Context / CTV */}
+            <Section title="View">
+              <div className="flex flex-col gap-1.5">
+                {([
+                  { value: 'builder', label: 'Ad Builder' },
+                  { value: 'in-context', label: 'In-Context Preview' },
+                  { value: 'ctv', label: 'CTV Preview' },
+                ] as const).map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => actions.setBuilderView(value)}
+                    className={`text-left px-3 py-2 rounded text-sm font-medium transition-colors ${
+                      state.builderView === value
+                        ? 'text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    style={state.builderView === value ? { background: '#0F2B45' } : undefined}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Section>
+
+            {/* Builder-specific controls */}
+            {state.builderView === 'builder' && (
+              <>
+                {/* Size selector */}
+                <Section title="Ad Size">
+                  <div className="flex flex-col gap-1.5">
+                    {INTERACTIVE_SIZES.map((size) => {
+                      const ad = AD_SIZES[size];
+                      const hasConfig = !!state.interactiveAds[size];
+                      return (
+                        <button
+                          key={size}
+                          onClick={() => actions.setActiveBuilderSize(size)}
+                          className={`text-left px-3 py-2 rounded text-sm font-medium transition-colors ${
+                            state.activeBuilderSize === size
+                              ? 'text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                          style={state.activeBuilderSize === size ? { background: '#0F2B45' } : undefined}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{size}</span>
+                            {hasConfig && (
+                              <span
+                                className="w-2 h-2 rounded-full inline-block"
+                                style={{ background: '#56C3E8' }}
+                                title="Has components"
+                              />
+                            )}
+                          </div>
+                          <div
+                            className="text-[10px]"
+                            style={{ color: state.activeBuilderSize === size ? '#56C3E8' : '#9ca3af' }}
+                          >
+                            {ad.label}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Section>
+
+                {/* Background color */}
+                <Section title="Canvas Background">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={
+                        state.interactiveAds[state.activeBuilderSize]?.backgroundColor ?? '#0F2B45'
+                      }
+                      onChange={(e) => {
+                        const current = state.interactiveAds[state.activeBuilderSize] ?? {
+                          size: state.activeBuilderSize,
+                          components: [],
+                          backgroundColor: '#0F2B45',
+                        };
+                        actions.setInteractiveAd(state.activeBuilderSize, {
+                          ...current,
+                          backgroundColor: e.target.value,
+                        });
+                      }}
+                      className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0"
+                    />
+                    <span className="text-xs text-gray-500 font-mono">
+                      {state.interactiveAds[state.activeBuilderSize]?.backgroundColor ?? '#0F2B45'}
+                    </span>
+                  </div>
+                </Section>
+              </>
+            )}
+
+            {/* In-context specific controls */}
+            {state.builderView === 'in-context' && (
+              <>
+                <Section title="Template">
+                  <div className="flex flex-col gap-1.5">
+                    {([
+                      { value: 'article', label: 'Article Page' },
+                      { value: 'feed', label: 'News Feed' },
+                      { value: 'section', label: 'Section Page' },
+                    ] as const).map(({ value, label }) => (
+                      <button
+                        key={value}
+                        onClick={() => actions.setTemplate(value)}
+                        className={`text-left px-3 py-2 rounded text-sm font-medium transition-colors ${
+                          state.template === value
+                            ? 'text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                        style={state.template === value ? { background: '#0F2B45' } : undefined}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </Section>
+
+                <Section title="Viewport">
+                  <div className="flex gap-1.5">
+                    {VIEWPORT_PRESETS.map((preset) => (
+                      <button
+                        key={preset.name}
+                        onClick={() => actions.setViewport(preset)}
+                        className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
+                          state.viewport.name === preset.name
+                            ? 'text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                        style={state.viewport.name === preset.name ? { background: '#0F2B45' } : undefined}
+                      >
+                        {preset.name}
+                        <div className="text-[10px]" style={{ color: state.viewport.name === preset.name ? '#56C3E8' : '#9ca3af' }}>
+                          {preset.width}x{preset.height}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </Section>
+
+                <Section title="Display">
+                  <div className="flex flex-col gap-2">
+                    <Toggle label="Slot outlines" checked={state.showOutlines} onChange={actions.toggleOutlines} />
+                    <Toggle label="Ad labels" checked={state.showLabels} onChange={actions.toggleLabels} />
+                    <Toggle label="Dark mode" checked={state.darkMode} onChange={actions.toggleDarkMode} />
+                  </div>
+                </Section>
+              </>
+            )}
+
+            {/* Landing page URL (shared for builder & in-context) */}
+            {state.builderView !== 'ctv' && (
+              <Section title="Landing Page">
+                <input
+                  type="url"
+                  placeholder="https://example.com/landing"
+                  value={state.landingPageUrl}
+                  onChange={(e) => actions.setLandingPageUrl(e.target.value)}
+                  className="w-full px-3 py-2 rounded border border-gray-200 text-xs text-gray-700 focus:outline-none focus:ring-1"
+                  onFocus={(e) => (e.currentTarget.style.borderColor = '#56C3E8')}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = '#e5e7eb')}
+                />
+                {state.landingPageUrl && (
+                  <p className="text-[10px] mt-1" style={{ color: '#56C3E8' }}>
+                    All ads will link to this URL
+                  </p>
+                )}
+              </Section>
+            )}
+          </>
+        )}
       </div>
 
       {/* Bottom actions */}

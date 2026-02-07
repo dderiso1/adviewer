@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { AppState } from '../types';
+import { VIEWPORT_PRESETS } from '../types';
 import { loadConfig } from '../utils/storage';
 import { ArticlePage } from './templates/ArticlePage';
 import { NewsFeed } from './templates/NewsFeed';
@@ -11,21 +12,49 @@ const TEMPLATES = {
   section: SectionPage,
 };
 
+const stateDefaults: AppState = {
+  template: 'article',
+  viewport: VIEWPORT_PRESETS[2],
+  zoom: 100,
+  showOutlines: false,
+  showLabels: false,
+  scaleMode: 'scale-to-fit',
+  darkMode: false,
+  creatives: {},
+  active970Variant: 'A',
+  landingPageUrl: '',
+  adMode: 'static',
+  builderView: 'builder',
+  activeBuilderSize: '300x250',
+  interactiveAds: {},
+  ctvConfig: { ctaText: 'Learn More', ctaUrl: '', brandName: 'VoteShift' },
+  selectedComponentId: null,
+};
+
 export function PresentationView({ configId }: { configId: string }) {
   const [state, setState] = useState<AppState | null>(null);
   const [error, setError] = useState(false);
+  const [width, setWidth] = useState(window.innerWidth);
 
   useEffect(() => {
     loadConfig(configId)
       .then((loaded) => {
         if (loaded) {
-          setState(loaded);
+          // Merge with defaults to fill any missing fields from old configs
+          setState({ ...stateDefaults, ...loaded });
         } else {
           setError(true);
         }
       })
       .catch(() => setError(true));
   }, [configId]);
+
+  // Track viewport width for responsive rendering
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   if (error) {
     return (
@@ -52,7 +81,7 @@ export function PresentationView({ configId }: { configId: string }) {
 
   return (
     <div className={state.darkMode ? 'dark' : ''}>
-      <TemplateComponent state={state} containerWidth={window.innerWidth} />
+      <TemplateComponent state={state} containerWidth={width} />
     </div>
   );
 }
