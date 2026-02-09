@@ -36,17 +36,26 @@ interface PresentationViewProps {
   hashData?: string;            // new: lz-string compressed state in URL hash
 }
 
+const TEMPLATE_OPTIONS = [
+  { key: 'article' as const, label: 'Article Page' },
+  { key: 'feed' as const, label: 'News Feed' },
+  { key: 'section' as const, label: 'Section Page' },
+];
+
 export function PresentationView({ presentParam, hashData }: PresentationViewProps) {
   const [state, setState] = useState<AppState | null>(null);
   const [error, setError] = useState(false);
   const [width, setWidth] = useState(window.innerWidth);
+  const [activeTemplate, setActiveTemplate] = useState<'article' | 'feed' | 'section'>('article');
 
   useEffect(() => {
     // Try URL hash first (new portable format)
     if (hashData) {
       const decoded = decodeStateFromURL(hashData);
       if (decoded) {
-        setState({ ...stateDefaults, ...decoded });
+        const merged = { ...stateDefaults, ...decoded };
+        setState(merged);
+        setActiveTemplate(merged.template);
         return;
       }
     }
@@ -56,7 +65,9 @@ export function PresentationView({ presentParam, hashData }: PresentationViewPro
       loadConfig(presentParam)
         .then((loaded) => {
           if (loaded) {
-            setState({ ...stateDefaults, ...loaded });
+            const merged = { ...stateDefaults, ...loaded };
+            setState(merged);
+            setActiveTemplate(merged.template);
           } else {
             setError(true);
           }
@@ -96,11 +107,41 @@ export function PresentationView({ presentParam, hashData }: PresentationViewPro
     );
   }
 
-  const TemplateComponent = TEMPLATES[state.template];
+  const TemplateComponent = TEMPLATES[activeTemplate];
 
   return (
     <div className={state.darkMode ? 'dark' : ''}>
-      <TemplateComponent state={state} containerWidth={width} />
+      <div style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '4px',
+        padding: '10px 16px',
+        background: '#0F2B45',
+      }}>
+        {TEMPLATE_OPTIONS.map((opt) => (
+          <button
+            key={opt.key}
+            onClick={() => setActiveTemplate(opt.key)}
+            style={{
+              padding: '6px 16px',
+              fontSize: '13px',
+              fontWeight: 600,
+              borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              background: activeTemplate === opt.key ? '#56C3E8' : 'transparent',
+              color: activeTemplate === opt.key ? '#0F2B45' : '#94a3b8',
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      <TemplateComponent state={{ ...state, template: activeTemplate }} containerWidth={width} />
     </div>
   );
 }
